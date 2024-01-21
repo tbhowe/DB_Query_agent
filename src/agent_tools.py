@@ -7,43 +7,87 @@ from dotenv import load_dotenv
 import os
 
 class DatabaseConnector:
+    """A utility class for managing database operations.
+
+    This class provides static methods for connecting to a database, reading credentials,
+    uploading data, listing tables, reading tables, and executing select queries using SQLAlchemy.
+    
+    Attributes:
+        None
+    """
 
     def __init__(self):
         load_dotenv()
 
     @staticmethod
     def read_db_creds(filename):
-        ''' takes YAML filepath and returns a dict of the database credentials'''
+        """Reads database credentials from a YAML file.
+
+        Args:
+            filename (str): File path of the YAML file containing database credentials.
+
+        Returns:
+            dict: A dictionary containing the database credentials.
+        """
         with open(filename, "r") as stream:
             creds= yaml.safe_load(stream)
         return creds
 
     @staticmethod
     def init_db_engine(creds):
-        '''take data from read_db_creds, return sqlalchemy database engine'''
+        """Initializes and returns a SQLAlchemy engine.
+
+        Args:
+            creds (dict): A dictionary containing database credentials.
+
+        Returns:
+            Engine: A SQLAlchemy Engine object.
+        """
         engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{creds['RDS_USER']}:{creds['RDS_PASSWORD']}@{creds['RDS_HOST']}:{creds['RDS_PORT']}/{creds['RDS_DATABASE']}")
         engine.connect()
         return engine
 
     @staticmethod
-    def upload_to_db(engine, df , table_name: str):
-        '''takes in table name and dataframe, converts to SQL and replaces in database'''
-        df.to_sql(table_name, engine, if_exists='replace')
-        pass
-
-    @staticmethod
     def list_db_tables(engine):
-        '''takes in an engine object and returns a list of table names in the database'''
+        """Lists all table names in the connected database.
+
+        Args:
+            engine (Engine): A SQLAlchemy Engine object.
+
+        Returns:
+            list: A list of table names.
+        """
         inspector = inspect(engine)
         return inspector.get_table_names()
 
     @staticmethod
     def read_rds_table(engine, table_name: str):
-        '''takes a table name as string, and an engine object and returns the table as a PANDAS df '''
+        """Reads a table from the database and returns it as a Pandas DataFrame.
+
+        Args:
+            engine (Engine): A SQLAlchemy Engine object.
+            table_name (str): The name of the table to read.
+
+        Returns:
+            DataFrame: A DataFrame containing the data from the specified table.
+        """
         return pd.read_sql_table(table_name, engine)
     
     @staticmethod
     def execute_query(engine, query: str):
+        """Executes a SELECT query and returns the result.
+
+        Args:
+            engine (Engine): A SQLAlchemy Engine object.
+            query (str): A SQL query string (must be a SELECT statement).
+
+        Returns:
+            list: A list of rows returned by the query, where each row is a tuple.
+
+        Raises:
+            ValueError: If the query is not a SELECT statement.
+            SQLAlchemyError: If an error occurs during query execution.
+        """
         # Check if the query is a SELECT statement
         if not query.strip().lower().startswith("select"):
             raise ValueError("Only SELECT statements are allowed")
