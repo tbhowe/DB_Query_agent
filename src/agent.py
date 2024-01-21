@@ -54,6 +54,7 @@ class AgentExecutorWrapper:
                                            - list_columns: returns the columns of a given table
                                            - run_sql_query: runs a postgresql SELECT query against the database and returns the result of the query
                                            ___
+                                            Do not make any assumptions about what tables exist, or about what columns exist.
                                             Before you run a query, you should make sure to use the list_columns tool to get the schema of the tables you want to query, so that you don't make any mistakes.
                                           """),
                 HumanMessagePromptTemplate.from_template("{input}"),
