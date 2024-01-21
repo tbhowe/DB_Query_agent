@@ -123,5 +123,5 @@ if __name__ == "__main__":
         description="Enter a natural language query to get information from the database."
     )
 
-    iface.launch()
+    iface.launch(server_name="0.0.0.0", server_port=7860)
     
