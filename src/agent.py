@@ -1,13 +1,16 @@
+from functools import partial
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 from langchain.schema import SystemMessage
 from langchain.agents import OpenAIFunctionsAgent, AgentExecutor
 from langchain.memory import ConversationBufferMemory
+from handlers.chat_model_start_handler import ChatModelStartHandler, boxen_print
 from dotenv import load_dotenv
 from tools.sql import run_query_tool, list_tables_tool, list_columns_tool
 from tools.report import write_report_tool
 from agent_tools import DatabaseConnector
-import os
+import gradio as gr
+
 
 class AgentExecutorWrapper:
     """Wrapper class for setting up and executing an AI agent with database access.
@@ -33,6 +36,7 @@ class AgentExecutorWrapper:
         self.tools = [run_query_tool, list_tables_tool, list_columns_tool, write_report_tool]
         self.agent = self._initialize_agent()
         self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        
 
     def _initialize_agent(self):
         """Initializes the AI agent with a chat model and a prompt template.
@@ -46,7 +50,8 @@ class AgentExecutorWrapper:
 
         load_dotenv()
         model_name='gpt-4-1106-preview'
-        chat_model = ChatOpenAI(temperature=0, model=model_name)
+        chat_model_start_handler = ChatModelStartHandler()
+        chat_model = ChatOpenAI(temperature=0, model=model_name, callbacks=[chat_model_start_handler])
         prompt = ChatPromptTemplate(
             messages=[
                 SystemMessage(content=f"""You are an AI agent that can access a postgres database. 
@@ -86,17 +91,37 @@ class AgentExecutorWrapper:
 
         agent_executor = AgentExecutor(
             agent=self.agent,
-            verbose=True,
+            # verbose=True,
             tools=self.tools,
             memory=self.memory
         )
         return agent_executor(query)
+    
+    def query_agent(self, input_text):
+        """Executes a query using the agent instance.
+
+        Args:
+            input_text (str): The query or command to be executed by the agent.
+
+        Returns:
+            str: The result of the query execution by the agent.
+        """
+        result = self.execute(input_text)
+        return result.get('output', 'No output generated')
+      # Fallback message if 'output' is not in result
 
 # Usage
 if __name__ == "__main__":
     db_creds_file = 'prod_creds.yaml'
     agent_executor_wrapper = AgentExecutorWrapper(db_creds_file)
-    result = agent_executor_wrapper.execute("Tell me how many users with status 'enrolled' are on each journey. Write the result to a report file")
-    print(result)
-    result_2 = agent_executor_wrapper.execute("repeat the exact same process, but for the 'graduated' status")
-    print(result_2)
+    query_function = partial(agent_executor_wrapper.query_agent)
+    iface = gr.Interface(
+        fn=query_function,  # Function to call
+        inputs=gr.Textbox(lines=2, placeholder="Enter your query here...", label="Your Query"),
+        outputs="text",
+        title="AiCore Database Query Agent",
+        description="Enter a natural language query to get information from the database."
+    )
+
+    iface.launch()
+    
