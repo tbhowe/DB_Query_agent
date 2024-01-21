@@ -22,7 +22,7 @@ def write_report(file_name, html):
     with open(file_path, "w") as f:
         f.write(html)
 
-tool = StructuredTool.from_function(
+write_report_tool = StructuredTool.from_function(
     name="write_report",
     description="Write an HTML report to a file. Use this tool whenever someone asks for a report.",
     func=write_report,

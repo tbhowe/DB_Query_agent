@@ -2,8 +2,10 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder
 from langchain.schema import SystemMessage
 from langchain.agents import OpenAIFunctionsAgent, AgentExecutor
+from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 from tools.sql import run_query_tool, list_tables_tool, list_columns_tool
+from tools.report import write_report_tool
 from agent_tools import DatabaseConnector
 import os
 
@@ -28,8 +30,9 @@ class AgentExecutorWrapper:
 
         self.connector = DatabaseConnector(db_creds_file)
         self.db_tables_list = self.connector.list_db_tables()
-        self.tools = [run_query_tool, list_tables_tool, list_columns_tool]
+        self.tools = [run_query_tool, list_tables_tool, list_columns_tool, write_report_tool]
         self.agent = self._initialize_agent()
+        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     def _initialize_agent(self):
         """Initializes the AI agent with a chat model and a prompt template.
@@ -53,10 +56,12 @@ class AgentExecutorWrapper:
                                            - list_tables: returns the list of tables in the database
                                            - list_columns: returns the columns of a given table
                                            - run_sql_query: runs a postgresql SELECT query against the database and returns the result of the query
+                                           - write_report: writes an HTML report to a file. Use this whenever someone asks for a report.
                                            ___
                                             Do not make any assumptions about what tables exist, or about what columns exist.
                                             Before you run a query, you should make sure to use the list_columns tool to get the schema of the tables you want to query, so that you don't make any mistakes.
                                           """),
+                MessagesPlaceholder(variable_name="chat_history"),
                 HumanMessagePromptTemplate.from_template("{input}"),
                 MessagesPlaceholder(variable_name="agent_scratchpad")
             ]
@@ -82,7 +87,8 @@ class AgentExecutorWrapper:
         agent_executor = AgentExecutor(
             agent=self.agent,
             verbose=True,
-            tools=self.tools
+            tools=self.tools,
+            memory=self.memory
         )
         return agent_executor(query)
 
@@ -90,5 +96,7 @@ class AgentExecutorWrapper:
 if __name__ == "__main__":
     db_creds_file = 'prod_creds.yaml'
     agent_executor_wrapper = AgentExecutorWrapper(db_creds_file)
-    result = agent_executor_wrapper.execute("how many users are there whose first name begins with S, and of those, how many are on the DevOps Engineering Specialisation journey?")
+    result = agent_executor_wrapper.execute("Tell me how many users with status 'enrolled' are on each journey. Write the result to a report file")
     print(result)
+    result_2 = agent_executor_wrapper.execute("repeat the exact same process, but for the 'graduated' status")
+    print(result_2)
