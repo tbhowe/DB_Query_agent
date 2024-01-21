@@ -42,12 +42,19 @@ class AgentExecutorWrapper:
         """
 
         load_dotenv()
-        chat_model = ChatOpenAI()
+        model_name='gpt-4-1106-preview'
+        chat_model = ChatOpenAI(temperature=0, model=model_name)
         prompt = ChatPromptTemplate(
             messages=[
                 SystemMessage(content=f"""You are an AI agent that can access a postgres database. 
                                            The available tables in the database are: {self.db_tables_list}
-                                           You also have access to the following tools: {self.tools},
+                                           You also have access to the following tools: 
+                                           ___
+                                           - list_tables: returns the list of tables in the database
+                                           - list_columns: returns the columns of a given table
+                                           - run_sql_query: runs a postgresql SELECT query against the database and returns the result of the query
+                                           ___
+                                            Before you run a query, you should make sure to use the list_columns tool to get the schema of the tables you want to query, so that you don't make any mistakes.
                                           """),
                 HumanMessagePromptTemplate.from_template("{input}"),
                 MessagesPlaceholder(variable_name="agent_scratchpad")
@@ -82,5 +89,5 @@ class AgentExecutorWrapper:
 if __name__ == "__main__":
     db_creds_file = 'prod_creds.yaml'
     agent_executor_wrapper = AgentExecutorWrapper(db_creds_file)
-    result = agent_executor_wrapper.execute("how many users are on the DevOps Engineering Specialisation journey?")
+    result = agent_executor_wrapper.execute("how many users are there whose first name begins with S, and of those, how many are on the DevOps Engineering Specialisation journey?")
     print(result)

@@ -18,6 +18,6 @@ list_tables_tool = Tool.from_function(
 
 list_columns_tool = Tool.from_function(
                                     name = "list_columns",
-                                    description = "Given a table name as an input, List all columns in a table. Returns the column names.",
+                                    description = "Given a table name as an input, Returns the column names for that table.",
                                     func = connector.get_table_columns
                                     )
