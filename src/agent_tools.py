@@ -55,6 +55,16 @@ class DatabaseConnector:
         except SQLAlchemyError as e:
             print(f"An error occurred: {e}")
             raise
+
+class AgentHandler:
+    def __init__(self):
+        pass
+
+    def get_table_list(self):
+        pass
+
+    def get_table_schema(self):
+        pass
     
 # test suite
 if __name__== '__main__':
