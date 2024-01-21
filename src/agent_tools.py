@@ -4,7 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
+from sqlalchemy import text
 import os
+
+
 
 class DatabaseConnector:
     """A utility class for managing database operations.
@@ -16,8 +19,12 @@ class DatabaseConnector:
         None
     """
 
-    def __init__(self):
+
+    def __init__(self, creds_path: str):
+        self.creds_path = creds_path
         load_dotenv()
+        self.init_db_engine(self.creds_path)
+        
 
     @staticmethod
     def read_db_creds(filename):
@@ -29,26 +36,27 @@ class DatabaseConnector:
         Returns:
             dict: A dictionary containing the database credentials.
         """
+
         with open(filename, "r") as stream:
             creds= yaml.safe_load(stream)
         return creds
 
-    @staticmethod
-    def init_db_engine(creds):
-        """Initializes and returns a SQLAlchemy engine.
+   
+    def init_db_engine(self, filename):
+        """Initializes the SQLAlchemy engine using database credentials from a YAML file.
 
         Args:
-            creds (dict): A dictionary containing database credentials.
+            filename (str): File path of the YAML file containing database credentials.
 
-        Returns:
-            Engine: A SQLAlchemy Engine object.
+        Sets:
+            self.engine: A SQLAlchemy Engine object.
         """
-        engine = create_engine(f"{'postgresql'}+{'psycopg2'}://{creds['RDS_USER']}:{creds['RDS_PASSWORD']}@{creds['RDS_HOST']}:{creds['RDS_PORT']}/{creds['RDS_DATABASE']}")
-        engine.connect()
-        return engine
+        creds = self.read_db_creds(filename)
+        self.engine = create_engine(f"postgresql+psycopg2://{creds['RDS_USER']}:{creds['RDS_PASSWORD']}@{creds['RDS_HOST']}:{creds['RDS_PORT']}/{creds['RDS_DATABASE']}")
+        self.engine.connect()
 
-    @staticmethod
-    def list_db_tables(engine):
+    
+    def list_db_tables(self):
         """Lists all table names in the connected database.
 
         Args:
@@ -57,28 +65,34 @@ class DatabaseConnector:
         Returns:
             list: A list of table names.
         """
-        inspector = inspect(engine)
+
+        inspector = inspect(self.engine)
         return inspector.get_table_names()
 
-    @staticmethod
-    def read_rds_table(engine, table_name: str):
-        """Reads a table from the database and returns it as a Pandas DataFrame.
+    
+    
+    def get_table_columns(self, table_name: str):
+        """Retrieves a list of column names for a specified table in the database.
+
+        This method inspects the given database table and returns a list containing the names
+        of all columns in that table.
 
         Args:
-            engine (Engine): A SQLAlchemy Engine object.
-            table_name (str): The name of the table to read.
+            engine (Engine): A SQLAlchemy Engine object representing the database connection.
+            table_name (str): The name of the table for which to retrieve column names.
 
         Returns:
-            DataFrame: A DataFrame containing the data from the specified table.
+            list: A list of strings, where each string is a column name from the specified table.
         """
-        return pd.read_sql_table(table_name, engine)
+
+        inspector = inspect(self.engine)
+        return [column['name'] for column in inspector.get_columns(table_name)]
+
     
-    @staticmethod
-    def execute_query(engine, query: str):
+    def execute_query(self, query: str):
         """Executes a SELECT query and returns the result.
 
         Args:
-            engine (Engine): A SQLAlchemy Engine object.
             query (str): A SQL query string (must be a SELECT statement).
 
         Returns:
@@ -93,8 +107,8 @@ class DatabaseConnector:
             raise ValueError("Only SELECT statements are allowed")
 
         try:
-            with engine.connect() as connection:
-                result = connection.execute(query)
+            with self.engine.connect() as connection:
+                result = connection.execute(text(query))
                 return [row for row in result]
         except SQLAlchemyError as e:
             print(f"An error occurred: {e}")
@@ -113,10 +127,31 @@ class AgentHandler:
 # test suite
 if __name__== '__main__':
     db_yaml_file='prod_creds.yaml'
-    creds = DatabaseConnector.read_db_creds(db_yaml_file)
-    engine=DatabaseConnector.init_db_engine(creds)
-    table_list=DatabaseConnector.list_db_tables(engine)
-    print(table_list)
+    db_connector = DatabaseConnector(db_yaml_file)
+
+    try:
+        table_list = db_connector.list_db_tables()
+        print("table list function working")
+    except SQLAlchemyError as e:
+        print(f"An error occurred in list_db_tables: {e}")
+        raise
+    
+    try:
+        table_columns = db_connector.get_table_columns('users')
+        print("table columns function working")
+    except SQLAlchemyError as e:
+        print(f"An error occurred in get_table_columns: {e}")
+        raise
+
+    try: 
+        query_result = db_connector.execute_query('SELECT * FROM users')
+        print("execute query function working")
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred in execute_query: {e}")
+        raise
+
+ 
 
     
 # %%
