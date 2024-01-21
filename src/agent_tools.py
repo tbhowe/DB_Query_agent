@@ -63,7 +63,7 @@ class DatabaseConnector:
             engine (Engine): A SQLAlchemy Engine object.
 
         Returns:
-            list: A list of table names.
+            str: A list of table names, each on a newline
         """
 
         inspector = inspect(self.engine)
