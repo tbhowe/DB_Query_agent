@@ -67,8 +67,8 @@ class DatabaseConnector:
         """
 
         inspector = inspect(self.engine)
-        return inspector.get_table_names()
-
+        table_names = inspector.get_table_names()
+        return "\n".join(table_names)
     
     
     def get_table_columns(self, table_name: str):
@@ -111,8 +111,8 @@ class DatabaseConnector:
                 result = connection.execute(text(query))
                 return [row for row in result]
         except SQLAlchemyError as e:
-            print(f"An error occurred: {e}")
-            raise
+            return f"An error occurred when attempting to process the query: {e}"
+            
 
 class AgentHandler:
     def __init__(self):
@@ -132,6 +132,7 @@ if __name__== '__main__':
     try:
         table_list = db_connector.list_db_tables()
         print("table list function working")
+        print(table_list)
     except SQLAlchemyError as e:
         print(f"An error occurred in list_db_tables: {e}")
         raise
