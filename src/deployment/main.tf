@@ -8,12 +8,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
+  name     = "dbquery-resource-group"
   location = var.location
 }
 
 resource "azurerm_container_group" "example" {
-  name                = "example-container-group"
+  name                = "dbquery-container-group"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   os_type             = "Linux"
@@ -48,7 +48,7 @@ resource "azurerm_container_group" "example" {
 
 
 resource "azurerm_key_vault" "example" {
-  name                        = "example-key-vault"
+  name                        = "dbquery-key-vault"
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
   tenant_id                   = var.tenant_id
@@ -82,7 +82,7 @@ resource "azurerm_key_vault_secret" "rds_database" {
 }
 
 resource "azurerm_key_vault_secret" "rds_port" {
-  name         = "RDS_PORT"
+  name         = "RDS-PORT"
   value        = var.RDS_PORT
   key_vault_id = azurerm_key_vault.example.id
 }
@@ -100,6 +100,6 @@ resource "azurerm_key_vault_access_policy" "example" {
   object_id = azurerm_user_assigned_identity.example.principal_id
 
   key_permissions    = []
-  secret_permissions = ["get"]
+  secret_permissions = ["Get"]
   certificate_permissions = []
 }
