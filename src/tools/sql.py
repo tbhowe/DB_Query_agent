@@ -3,7 +3,7 @@ from agent_tools import DatabaseConnector
 from pydantic.v1 import BaseModel
 from typing import List 
 
-connector = DatabaseConnector('prod_creds.yaml')
+connector = DatabaseConnector()
 print("connector created")
 
 class RunQueryArgsSchema(BaseModel):
