@@ -1,3 +1,4 @@
 .env
 src/.env
 src/prod_creds.yaml
+src/reports/
