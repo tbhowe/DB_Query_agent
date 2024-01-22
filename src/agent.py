@@ -58,8 +58,8 @@ class AgentExecutorWrapper:
                                            The available tables in the database are: {self.db_tables_list}
                                            You also have access to the following tools: 
                                            ___
-                                           - list_tables: returns the list of tables in the database
-                                           - list_columns: returns the columns of a given table
+                                           - list_tables: returns the list of tables in the database. You do not need to supply an argument to this tool.
+                                           - list_columns: returns the columns of a given table. You must supply a single table name as an argument to this tool.
                                            - run_sql_query: runs a postgresql SELECT query against the database and returns the result of the query
                                            - write_report: writes an HTML report to a file. Use this whenever someone asks for a report.
                                            ___

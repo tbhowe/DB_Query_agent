@@ -56,7 +56,7 @@ class DatabaseConnector:
         self.engine.connect()
 
     
-    def list_db_tables(self):
+    def list_db_tables(self, *args, **kwargs):
         """Lists all table names in the connected database.
 
         Args:
