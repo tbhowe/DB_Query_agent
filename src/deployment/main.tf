@@ -18,11 +18,11 @@ resource "azurerm_container_group" "example" {
   resource_group_name = azurerm_resource_group.example.name
   os_type             = "Linux"
   ip_address_type     = "Public"
-  dns_name_label      = "example-container-group-dns"
+  dns_name_label      = "aicore-natlang-db-query-agent"
 
   container {
     name   = "gradio-app"
-    image  = "your_dockerhub_username/your_image_name:your_tag"
+    image  = "tbhowe/natural_language_postgres_query:latest"
     cpu    = 0.5
     memory = 1.5
 
