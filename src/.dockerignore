@@ -1,2 +1,5 @@
 .env
 prod_creds.yaml
+deployment/
+flagged/
+__pycache__/
