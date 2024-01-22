@@ -59,31 +59,31 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_secret" "openai_api_key" {
   name         = "OpenAI-API-Key"
-  value        = var.openai_api_key
+  value        = var.OPENAI_API_KEY
   key_vault_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_key_vault_secret" "rds_host" {
   name         = "RDS-HOST"
-  value        = var.rds_host
+  value        = var.RDS_HOST
   key_vault_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_key_vault_secret" "rds_password" {
   name         = "RDS-PASSWORD"
-  value        = var.rds_password
+  value        = var.RDS_PASSWORD
   key_vault_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_key_vault_secret" "rds_database" {
-  name         = "RDS-DATABASE"
-  value        = var.rds_database
+  name         = "RDSDATABASE"
+  value        = var.RDS_DATABASE
   key_vault_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_key_vault_secret" "rds_port" {
-  name         = "RDS-PORT"
-  value        = var.rds_port
+  name         = "RDS_PORT"
+  value        = var.RDS_PORT
   key_vault_id = azurerm_key_vault.example.id
 }
 

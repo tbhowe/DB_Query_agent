@@ -20,29 +20,40 @@ class DatabaseConnector:
     """
 
 
-    def __init__(self, creds_path: str):
-        self.creds_path = creds_path
-        load_dotenv()
-        self.init_db_engine(self.creds_path)
+    def __init__(self):
+        self.creds = self.read_db_creds()
+        self.init_db_engine(self.creds)
         
 
     @staticmethod
-    def read_db_creds(filename):
-        """Reads database credentials from a YAML file.
-
-        Args:
-            filename (str): File path of the YAML file containing database credentials.
+    def read_db_creds():
+        """Reads database credentials from environment variables.
 
         Returns:
             dict: A dictionary containing the database credentials.
         """
+        creds = {
+            'RDS_USER': os.getenv('RDS_USER'),
+            'RDS_PASSWORD': os.getenv('RDS_PASSWORD'),
+            'RDS_HOST': os.getenv('RDS_HOST'),
+            'RDS_PORT': os.getenv('RDS_PORT'),
+            'RDS_DATABASE': os.getenv('RDS_DATABASE')
+        }
 
-        with open(filename, "r") as stream:
-            creds= yaml.safe_load(stream)
+        # Check for None values
+        for key, value in creds.items():
+            if value is None:
+                raise ValueError(f"Environment variable {key} is not set")
+
+        # Validate port number
+        try:
+            creds['RDS_PORT'] = int(creds['RDS_PORT'])
+        except ValueError:
+            raise ValueError("Invalid RDS_PORT. It must be an integer.")
+
         return creds
-
    
-    def init_db_engine(self, filename):
+    def init_db_engine(self, creds: dict):
         """Initializes the SQLAlchemy engine using database credentials from a YAML file.
 
         Args:
@@ -51,7 +62,6 @@ class DatabaseConnector:
         Sets:
             self.engine: A SQLAlchemy Engine object.
         """
-        creds = self.read_db_creds(filename)
         self.engine = create_engine(f"postgresql+psycopg2://{creds['RDS_USER']}:{creds['RDS_PASSWORD']}@{creds['RDS_HOST']}:{creds['RDS_PORT']}/{creds['RDS_DATABASE']}")
         self.engine.connect()
 
@@ -127,7 +137,7 @@ class AgentHandler:
 # test suite
 if __name__== '__main__':
     db_yaml_file='prod_creds.yaml'
-    db_connector = DatabaseConnector(db_yaml_file)
+    db_connector = DatabaseConnector()
 
     try:
         table_list = db_connector.list_db_tables()

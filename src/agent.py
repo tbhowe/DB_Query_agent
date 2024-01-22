@@ -112,16 +112,15 @@ class AgentExecutorWrapper:
 
 # Usage
 if __name__ == "__main__":
-    db_creds_file = 'prod_creds.yaml'
-    agent_executor_wrapper = AgentExecutorWrapper(db_creds_file)
+    agent_executor_wrapper = AgentExecutorWrapper()
     query_function = partial(agent_executor_wrapper.query_agent)
     iface = gr.Interface(
-        fn=query_function,  # Function to call
+        fn=query_function,
         inputs=gr.Textbox(lines=2, placeholder="Enter your query here...", label="Your Query"),
         outputs="text",
         title="AiCore Database Query Agent",
         description="Enter a natural language query to get information from the database."
     )
 
-    iface.launch(server_name="0.0.0.0", server_port=7860)
+    iface.launch(server_name="0.0.0.0", server_port=7860, share=True)
     

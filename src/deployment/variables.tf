@@ -19,23 +19,23 @@ variable "location" {
   default     = "UK South"
 }
 
-variable "openai_api_key" {
+variable "OPENAI_API_KEY" {
   description = "OpenAI API key"
 }
 
-variable "rds_host" {
+variable "RDS_HOST" {
   description = "RDS Host"
 }
 
-variable "rds_password" {
+variable "RDS_PASSWORD" {
   description = "RDS Password"
 }
 
-variable "rds_database" {
+variable "RDS_DATABASE" {
   description = "RDS Database name"
 }
 
-variable "rds_port" {
+variable "RDS_PORT" {
   description = "RDS Port"
 }
 
