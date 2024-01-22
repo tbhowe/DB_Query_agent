@@ -10,6 +10,7 @@ from tools.sql import run_query_tool, list_tables_tool, list_columns_tool
 from tools.report import write_report_tool
 from agent_tools import DatabaseConnector
 import gradio as gr
+import os
 
 
 class AgentExecutorWrapper:
@@ -23,15 +24,11 @@ class AgentExecutorWrapper:
         db_tables_list (list): List of tables available in the database.
         agent (OpenAIFunctionsAgent): The AI agent initialized with a chat model and prompt.
     """
-    def __init__(self, db_creds_file):
-        """Initializes the AgentExecutorWrapper with database credentials and tools.
-
-        Args:
-            db_creds_file (str): The file path for the database credentials YAML file.
-            tools (list): A list of callable tools that the agent can use.
+    def __init__(self):
+        """Initializes the AgentExecutorWrapper with database tools.
         """
 
-        self.connector = DatabaseConnector(db_creds_file)
+        self.connector = DatabaseConnector()
         self.db_tables_list = self.connector.list_db_tables()
         self.tools = [run_query_tool, list_tables_tool, list_columns_tool, write_report_tool]
         self.agent = self._initialize_agent()
@@ -48,7 +45,10 @@ class AgentExecutorWrapper:
             OpenAIFunctionsAgent: The initialized AI agent.
         """
 
-        load_dotenv()
+        openai_api_key = os.getenv('OPENAI_API_KEY')
+        if not openai_api_key:
+            raise ValueError("OPENAI_API_KEY environment variable is not set")
+
         model_name='gpt-4-1106-preview'
         chat_model_start_handler = ChatModelStartHandler()
         chat_model = ChatOpenAI(temperature=0, model=model_name, callbacks=[chat_model_start_handler])
