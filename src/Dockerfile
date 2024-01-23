@@ -10,7 +10,7 @@ COPY . /app
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Make port available to the world outside this container
-EXPOSE 7860
+EXPOSE 80
 
 # Run agent.py when the container launches
 CMD ["python3", "agent.py"]

@@ -11,6 +11,10 @@ from tools.report import write_report_tool
 from agent_tools import DatabaseConnector
 import gradio as gr
 import os
+import logging
+import sys
+
+
 
 
 class AgentExecutorWrapper:
@@ -112,6 +116,7 @@ class AgentExecutorWrapper:
 
 # Usage
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     agent_executor_wrapper = AgentExecutorWrapper()
     query_function = partial(agent_executor_wrapper.query_agent)
     iface = gr.Interface(
@@ -122,5 +127,5 @@ if __name__ == "__main__":
         description="Enter a natural language query to get information from the database."
     )
 
-    iface.launch(server_name="0.0.0.0", server_port=7860, share=True)
+    iface.launch(server_name="0.0.0.0", server_port=80, share=True)
     

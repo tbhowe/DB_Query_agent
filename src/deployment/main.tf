@@ -23,11 +23,11 @@ resource "azurerm_container_group" "example" {
   container {
     name   = "gradio-app"
     image  = "tbhowe/natural_language_postgres_query:latest"
-    cpu    = 0.5
-    memory = 1.5
+    cpu    = 1
+    memory = 2
 
     ports {
-      port     = 7860
+      port     = 80
       protocol = "TCP"
     }
 
@@ -55,6 +55,23 @@ resource "azurerm_key_vault" "example" {
   sku_name                    = "standard"
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-user-assigned-identity"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = azurerm_key_vault.example.id
+
+  tenant_id = var.tenant_id
+  object_id = azurerm_user_assigned_identity.example.principal_id
+
+  key_permissions    = []
+  secret_permissions = ["Get", "Set"]
+  certificate_permissions = []
 }
 
 resource "azurerm_key_vault_secret" "openai_api_key" {
@@ -85,21 +102,4 @@ resource "azurerm_key_vault_secret" "rds_port" {
   name         = "RDS-PORT"
   value        = var.RDS_PORT
   key_vault_id = azurerm_key_vault.example.id
-}
-
-resource "azurerm_user_assigned_identity" "example" {
-  name                = "example-user-assigned-identity"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-}
-
-resource "azurerm_key_vault_access_policy" "example" {
-  key_vault_id = azurerm_key_vault.example.id
-
-  tenant_id = var.tenant_id
-  object_id = azurerm_user_assigned_identity.example.principal_id
-
-  key_permissions    = []
-  secret_permissions = ["Get"]
-  certificate_permissions = []
 }

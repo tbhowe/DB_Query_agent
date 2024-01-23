@@ -3,6 +3,7 @@ src/.env
 src/prod_creds.yaml
 src/deployment/docker.txt
 src/deployment/.env
+src/deployment/export.sh
 *.pyc
 
 # Local .terraform directories
